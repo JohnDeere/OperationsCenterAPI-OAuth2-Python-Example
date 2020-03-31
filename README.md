@@ -1,2 +1,1 @@
-# MyJohnDeereAPI-OAuth2-Python-Example
-Example Python Application for OAuth2
+# oauth2-example-python
