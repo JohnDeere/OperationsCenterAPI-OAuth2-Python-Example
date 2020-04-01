@@ -35,11 +35,11 @@ def populate(data):
 
 
 def update_token_info(res):
-    # settings['idToken'] = res.json()['id_token']
-    token = res.json()['access_token']
+    json_response = res.json()
+    token = json_response['access_token']
     settings['accessToken'] = token
-    settings['refreshToken'] = res.json()['refresh_token']
-    settings['exp'] = datetime.datetime.now() + datetime.timedelta(seconds=res.json()['expires_in'])
+    settings['refreshToken'] = json_response['refresh_token']
+    settings['exp'] = datetime.datetime.now() + datetime.timedelta(seconds=json_response['expires_in'])
     (header, payload, sig) = token.split('.')
     payload += '=' * (-len(payload) % 4)
     settings['accessTokenDetails'] = json.dumps(json.loads(base64.urlsafe_b64decode(payload).decode()), indent=4)
@@ -61,12 +61,11 @@ def render_error(message):
 @app.route("/", methods=['POST'])
 def start_oidc():
     populate(request.form)
-    red = get_location_from_metadata('authorization_endpoint') + '?client_id=' + settings[
-        'clientId'] + '&response_type=code&scope=' \
-          + urllib.parse.quote(settings['scopes']) + '&redirect_uri=' + settings[
-        'callbackUrl'] + '&state=' + settings['state']
+    redirect_url = get_location_from_metadata('authorization_endpoint') + '?client_id=' + settings[
+        'clientId'] + '&response_type=code&scope=' + urllib.parse.quote(settings['scopes']) + '&redirect_uri=' + settings[
+                       'callbackUrl'] + '&state=' + settings['state']
 
-    return redirect(red, code=302)
+    return redirect(redirect_url, code=302)
 
 
 @app.route("/callback")
@@ -76,7 +75,7 @@ def process_callback():
         headers = {'authorization': 'Basic ' + get_basic_auth_header().decode('utf-8'), 'Accept': 'application/json',
                    'Content-Type': 'application/x-www-form-urlencoded'}
         payload = {'grant_type': 'authorization_code', 'redirect_uri': settings['callbackUrl'],
-                   'code': code, 'scope': settings['scopes'] }
+                   'code': code, 'scope': settings['scopes']}
 
         res = requests.post(get_location_from_metadata('token_endpoint'), data=payload, headers=headers)
         update_token_info(res)
@@ -89,7 +88,8 @@ def process_callback():
 def call_the_api():
     try:
         url = request.form['url']
-        headers = {'authorization': 'Bearer ' + settings['accessToken'], 'Accept': 'application/vnd.deere.axiom.v3+json'}
+        headers = {'authorization': 'Bearer ' + settings['accessToken'],
+                   'Accept': 'application/vnd.deere.axiom.v3+json'}
         res = requests.get(url, headers=headers)
         settings['apiResponse'] = json.dumps(res.json(), indent=4)
         return index()
