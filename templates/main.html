@@ -1,0 +1,138 @@
+<html>
+<head>
+    <title>John Deere OAuth2 Python Example</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='prism.css') }}">
+    <script>
+        function toggleDiv(div) {
+            var x = document.getElementById(div);
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        }
+    </script>
+</head>
+<body>
+<h1>Welcome to the My John Deere API Python Example.</h1>
+
+
+<div class="layout">
+    <div class="grid-item">
+        <div class="grid-container">
+            <form action="/" method="post">
+                <div class="grid-item">
+                    <label id="wellKnownLabel" for="wellKnown">Well-Known Meta:</label><br/>
+                    <input type="url" name="wellKnown" id="wellKnown" aria-label="wellKnownLabel" value="{{settings.wellKnown}}"
+                           required="true">
+                </div>
+
+                <div class="grid-item">
+                    <label id="clientIdLabel" for="clientId">Client Id:</label><br/>
+                    <input name="clientId" id="clientId" aria-label="clientIdLabel" value="{{settings.clientId}}"
+                           required="true">
+                </div>
+
+                <div class="grid-item">
+                    <label id="clientSecretlabel" for="clientSecret">Client Secret:</label><br/>
+                    <input type="password" name="clientSecret" id="clientSecret" aria-label="clientSecretlabel"
+                           value="{{settings.clientSecret}}" required="true">
+                </div>
+
+                <div class="grid-item">
+                    <label id="callBackLabel" for="callbackUrl">Callback URL:</label><br/>
+                    <input type="url" name="callbackUrl" id="callbackUrl" aria-label="callBackLabel"
+                           value="{{settings.callbackUrl}}"
+                           required="true">
+                </div>
+
+                <div class="grid-item">
+                    <label id="scopesLabel" for="scopes">Requested Scopes:</label><br/>
+                    <input name="scopes" id="scopes" aria-label="scopesLabel" value="{{settings.scopes}}" required="true">
+                </div>
+
+                <div class="grid-item">
+                    <label id="stateLabel" for="state">State (optional):</label><br/>
+                    <input name="state" id="state" aria-label="stateLabel" value="{{settings.state}}" required="true">
+                </div>
+
+                <div class="grid-item">
+                    <input type="submit" value="Connect!">
+                </div>
+
+                <div class="grid-item">
+
+                </div>
+
+                <div class="grid-item">
+
+                </div>
+            </form>
+        </div>
+    </div>
+    {% if settings.accessToken %}
+    <div class="grid-item">
+        <div class="grid-container">
+            <div class="grid-item">
+                Access Token: <br/>
+
+                {% if settings.accessToken %}
+                    <p class="token">{{settings.accessToken}} <br/> <a onclick="toggleDiv('deets')" href="#">Toggle
+                        Details</a>
+                    </p>
+
+                    <div id="deets" style="display: none;">
+                        <pre><code class="language-json">{{settings.accessTokenDetails}}</code></pre>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="grid-item">
+                Expiration: <br/>
+                <div id="deets">{{settings.exp}}</div>
+            </div>
+
+            <div class="grid-item">
+                Refresh Token: <br/>
+                {% if settings.refreshToken %}
+                    <p class="token">{{settings.refreshToken}} <br/><a href="/refresh-access-token">Refresh The Access
+                        Token</a>
+                    </p>
+                {% endif %}
+            </div>
+
+
+        </div>
+     {% endif %}
+</div>
+</div>
+{% if settings.accessToken %}
+    <div class="grid-container">
+        <form method="post" action="/call-api">
+            <div class="grid-item">
+                <label id="urlLabel" for="url"> Simple API Invoke With Token:</label>
+                <input type="url" id="url" name="url" aria-label="urlLabel"
+                       value="https://sandboxapi.deere.com/platform/organizations"/>
+            </div>
+            <div class="grid-item">
+                <input type="submit" value="Go!">
+            </div>
+            {% if settings.apiResponse %}
+                <div class="grid-item">
+                <pre class="token">
+                    <code class="language-json">
+                        {{settings.apiResponse}}
+                    </code>
+                </pre>
+                </div>
+            {% endif %}
+        </form>
+
+    </div>
+{% endif %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='functions.js') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='prism.js') }}">
+</body>
+</html>
