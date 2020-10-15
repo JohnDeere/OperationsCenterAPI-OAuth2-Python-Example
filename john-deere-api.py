@@ -11,6 +11,7 @@ import urllib.parse
 app = Flask(__name__)
 
 settings = {
+    'apiUrl': 'https://sandboxapi.deere.com/platform',
     'clientId': '',
     'clientSecret': '',
     'wellKnown': 'https://signin.johndeere.com/oauth2/aus78tnlaysMraFhC1t7/.well-known/oauth-authorization-server',
@@ -54,6 +55,12 @@ def get_location_from_metadata(endpoint):
 def get_basic_auth_header():
     return base64.b64encode(bytes(settings['clientId'] + ':' + settings['clientSecret'], 'utf-8'))
 
+def api_get(access_token, resource_url):
+    headers = {
+        'authorization': 'Bearer ' + settings['accessToken'],
+        'Accept': 'application/vnd.deere.axiom.v3+json'
+    }
+    return requests.get(resource_url, headers=headers)
 
 def render_error(message):
     return render_template('error.html', title='John Deere API with Python', error=message)
@@ -78,6 +85,20 @@ def start_oidc():
 
     return redirect(redirect_url, code=302)
 
+def needs_organization_access():
+    """Check if a another redirect is needed to finish the connection.
+
+    Check to see if the 'connections' rel is present for any organization.
+    If the rel is present it means the oauth application has not completed its
+    access to an organization and must redirect the user to the uri provided
+    in the link.
+    """
+    api_response = api_get(settings['accessToken'], settings['apiUrl']+'/organizations').json()
+    for org in api_response['values']:
+        for link in org['links']:
+            if link['rel'] == 'connections':
+                return link['uri']
+    return None
 
 @app.route("/callback")
 def process_callback():
@@ -97,6 +118,12 @@ def process_callback():
 
         res = requests.post(get_location_from_metadata('token_endpoint'), data=payload, headers=headers)
         update_token_info(res)
+
+        organization_access_url = needs_organization_access()
+        if organization_access_url is not None:
+            return redirect(organization_access_url, code=302)
+
+
         return index()
     except Exception as e:
         logging.exception(e)
@@ -107,11 +134,7 @@ def process_callback():
 def call_the_api():
     try:
         url = request.form['url']
-        headers = {
-            'authorization': 'Bearer ' + settings['accessToken'],
-            'Accept': 'application/vnd.deere.axiom.v3+json'
-        }
-        res = requests.get(url, headers=headers)
+        res = api_get(settings['accessToken'], url)
         settings['apiResponse'] = json.dumps(res.json(), indent=4)
         return index()
     except Exception as e:
