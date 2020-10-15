@@ -1,9 +1,29 @@
 # oauth2-example-python
 
-Python version used 3.8
+### Python version used 3.8
 
-To run this application
+### Recommended running instructions:
 
-pip install -r requirements.txt
+1. Create a virtual environment:
 
-python john-deere-api.py 
+    ```shell script
+    $> python3 -m venv venv
+    ```
+
+2. Activate the newly created environment:
+
+    ```shell script
+    $> source venv/bin/activate
+    ```
+
+3. Install dependencies:
+
+    ```shell script
+    $> (venv) python -m pip install -r requirements.txt
+    ```
+
+4. Start the server locally:
+
+    ```shell script
+    $> (venv) python john-deere-api.py
+    ```
