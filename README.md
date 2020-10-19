@@ -12,9 +12,16 @@
 
 2. Activate the newly created environment:
 
+   On macOS and Linux:
     ```shell script
     $> source venv/bin/activate
     ```
+   
+   On Windows
+   ```
+   c:\> .\env\Scripts\activate
+   ```
+    
 
 3. Install dependencies:
 
