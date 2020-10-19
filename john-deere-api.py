@@ -16,6 +16,7 @@ settings = {
     'clientSecret': '',
     'wellKnown': 'https://signin.johndeere.com/oauth2/aus78tnlaysMraFhC1t7/.well-known/oauth-authorization-server',
     'callbackUrl': 'http://localhost:9090/callback',
+    'orgConnectionCompletedUrl': 'http://localhost:9090/',
     'scopes': 'ag1 ag2 ag3 eq1 eq2 org1 org2 files offline_access',
     'state': uuid.uuid1(),
     'idToken': '',
@@ -97,7 +98,8 @@ def needs_organization_access():
     for org in api_response['values']:
         for link in org['links']:
             if link['rel'] == 'connections':
-                return link['uri']
+                connectionsUri = link['uri']
+                return '%s?%s' % (connectionsUri, urllib.parse.urlencode({'redirect_uri': settings['orgConnectionCompletedUrl']}))
     return None
 
 @app.route("/callback")
