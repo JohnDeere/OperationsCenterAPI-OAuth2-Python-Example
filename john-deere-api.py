@@ -99,7 +99,8 @@ def needs_organization_access():
         for link in org['links']:
             if link['rel'] == 'connections':
                 connectionsUri = link['uri']
-                return '%s?%s' % (connectionsUri, urllib.parse.urlencode({'redirect_uri': settings['orgConnectionCompletedUrl']}))
+                query = urllib.parse.urlencode({'redirect_uri': settings['orgConnectionCompletedUrl']})
+                return f"{connectionsUri}?{query}"
     return None
 
 @app.route("/callback")
