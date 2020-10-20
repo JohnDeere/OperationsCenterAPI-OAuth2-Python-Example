@@ -10,13 +10,15 @@ import urllib.parse
 
 app = Flask(__name__)
 
+SERVER_URL='http://localhost:9090'
+
 settings = {
     'apiUrl': 'https://sandboxapi.deere.com/platform',
     'clientId': '',
     'clientSecret': '',
     'wellKnown': 'https://signin.johndeere.com/oauth2/aus78tnlaysMraFhC1t7/.well-known/oauth-authorization-server',
-    'callbackUrl': 'http://localhost:9090/callback',
-    'orgConnectionCompletedUrl': 'http://localhost:9090/',
+    'callbackUrl': f"{SERVER_URL}/callback",
+    'orgConnectionCompletedUrl': SERVER_URL,
     'scopes': 'ag1 ag2 ag3 eq1 eq2 org1 org2 files offline_access',
     'state': uuid.uuid1(),
     'idToken': '',
