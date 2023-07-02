@@ -19,7 +19,7 @@
    
    On Windows
    ```
-   c:\> .\env\Scripts\activate
+   c:\> .\venv\Scripts\activate
    ```
     
 
