@@ -14,8 +14,8 @@ SERVER_URL='http://localhost:9090'
 
 settings = {
     'apiUrl': 'https://sandboxapi.deere.com/platform',
-    'clientId': '',
-    'clientSecret': '',
+    'clientId': '0oa85j1pi8unbNKZj5d7',
+    'clientSecret': 'Pj_AwMtpKadJTvNHMYcFVr9EEGhdoxEG86QmBTrA',
     'wellKnown': 'https://signin.johndeere.com/oauth2/aus78tnlaysMraFhC1t7/.well-known/oauth-authorization-server',
     'callbackUrl': f"{SERVER_URL}/callback",
     'orgConnectionCompletedUrl': SERVER_URL,
@@ -96,6 +96,17 @@ def needs_organization_access():
     access to an organization and must redirect the user to the uri provided
     in the link.
     """
+
+    ##Modificaçoes LuizGusttavo 05/10/2023
+    #Adição de variaveis
+    buscar_Org = '/organizations'
+    page_01Org = '/?pageOffset=0&itemLimit=100'
+    page_02Org = '/?pageOffset=100&itemLimit=200'
+    page_03Org = '/?pageOffset=200&itemLimit=300'
+
+
+
+
     api_response = api_get(settings['accessToken'], settings['apiUrl']+'/organizations').json()
     for org in api_response['values']:
         for link in org['links']:
@@ -137,15 +148,35 @@ def process_callback():
 
 @app.route("/call-api", methods=['POST'])
 def call_the_api():
+    total_page = 300
+    limit_page = 100
+
     try:
+        url = 'https://sandboxapi.deere.com/platform/organizations/'
+
+        #?pageOffset=0&itemLimit=100
+        #Esse pedaço comentado acima se refere ao limite de itens a ser retornado pela api sendo que é paginado
+
         url = request.form['url']
         res = api_get(settings['accessToken'], url)
-        settings['apiResponse'] = json.dumps(res.json(), indent=4)
+        jsonR = settings['apiResponse'] = json.dumps(res.json(), indent=4)
+        print(jsonR)
+
+        # Suponha que jsonR contenha a resposta JSON
+        json_data = json.loads(jsonR)
+        for org in json_data["values"]:
+            print(org["name"])
+
+        next_page_exists = any(link.get("rel") == "nextPage" for link in json_data.get("links", []))
+        if next_page_exists:
+            print('1')
+        else:
+            print('2')
+
         return index()
     except Exception as e:
         logging.exception(e)
         return render_error('Error calling API!')
-
 
 @app.route("/refresh-access-token")
 def refresh_access_token():
