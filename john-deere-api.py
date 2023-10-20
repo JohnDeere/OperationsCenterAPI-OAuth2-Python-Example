@@ -14,8 +14,8 @@ SERVER_URL='http://localhost:9090'
 
 settings = {
     'apiUrl': 'https://sandboxapi.deere.com/platform',
-    'clientId': '',
-    'clientSecret': '',
+    'clientId': '0oa85j1pi8unbNKZj5d7',
+    'clientSecret': 'Pj_AwMtpKadJTvNHMYcFVr9EEGhdoxEG86QmBTrA',
     'wellKnown': 'https://signin.johndeere.com/oauth2/aus78tnlaysMraFhC1t7/.well-known/oauth-authorization-server',
     'callbackUrl': f"{SERVER_URL}/callback",
     'orgConnectionCompletedUrl': SERVER_URL,
@@ -96,6 +96,7 @@ def needs_organization_access():
     access to an organization and must redirect the user to the uri provided
     in the link.
     """
+
     api_response = api_get(settings['accessToken'], settings['apiUrl']+'/organizations').json()
     for org in api_response['values']:
         for link in org['links']:
@@ -128,7 +129,6 @@ def process_callback():
         if organization_access_url is not None:
             return redirect(organization_access_url, code=302)
 
-
         return index()
     except Exception as e:
         logging.exception(e)
@@ -137,15 +137,52 @@ def process_callback():
 
 @app.route("/call-api", methods=['POST'])
 def call_the_api():
+    ##Modificaçoes LuizGusttavo 05/10/2023
+    #Adição de variaveis
+    base_url = 'https://sandboxapi.deere.com/platform/organizations'
+    page_offsets = [0, 100, 200]  # Valores de pageOffset
+    item_limits = [100, 200, 300]  # Valores de itemLimit
+    cont = 0
+    name_arquive = 'bank_api_organizations.txt'
+
     try:
-        url = request.form['url']
-        res = api_get(settings['accessToken'], url)
-        settings['apiResponse'] = json.dumps(res.json(), indent=4)
+        all_organizations = []  # Para armazenar todos os resultados
+
+        for i in range(len(page_offsets)):
+            # Construa a URL com base nos valores de pageOffset e itemLimit
+            url = f'{base_url}/?pageOffset={page_offsets[i]}&itemLimit={item_limits[i]}'
+            print(url)
+
+            res = api_get(settings['accessToken'], url)
+            jsonR = settings['apiResponse'] = json.dumps(res.json(), indent=4)
+            #print(jsonR)
+
+            #var para contar
+            
+            # Suponha que jsonR contenha a resposta JSON
+            json_data = json.loads(jsonR)
+            for org in json_data["values"]:
+                cont = cont +1
+                print(org["name"],cont)
+                mode = 'a'
+                with open (name_arquive, mode) as arquive:
+                    arquive.write(org["name"] + ',' +'\n')
+                    all_organizations.append(org)
+
+
+            next_page_exists = any(link.get("rel") == "nextPage" for link in json_data.get("links", []))
+            if next_page_exists:
+                print('1')
+            else:
+                print('2')
+
+        # Faça algo com a lista de organizações, se necessário
+        print(f"Total de organizações: {len(all_organizations)}")
+
         return index()
     except Exception as e:
         logging.exception(e)
         return render_error('Error calling API!')
-
 
 @app.route("/refresh-access-token")
 def refresh_access_token():
@@ -170,11 +207,9 @@ def refresh_access_token():
         logging.exception(e)
         return render_error('Error getting refresh token!')
 
-
 @app.route("/")
 def index():
     return render_template('main.html', title='John Deere API with Python', settings=settings)
-
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=9090)
